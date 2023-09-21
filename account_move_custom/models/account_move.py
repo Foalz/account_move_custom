@@ -20,12 +20,11 @@ class account_move_custom(models.Model):
         if ('invoice_required' in vals) and vals['invoice_required']:
             for invoice in self:
                 for company in rest_of_companies:
-                    # rate_currency = currency._get_conversion_rate(company.currency_id, currency, company, fields.Date.today())
                     rate_currency = self.env["res.currency"].with_company(company).search([
                         ('name', '=', 'USD'),
                     ], limit=1).rate_ids.search([('name', '=', invoice.invoice_date)]).company_rate
                     journal_id = self.env["account.journal"].with_company(company).search(
-                            [("code", "=", "FPA"), 
+                            [("code", "=", invoice.journal_id.code), 
                              ("company_id", "=", company.id)
                             ]).id
                     for invoice_line in invoice.invoice_line_ids:
@@ -34,32 +33,16 @@ class account_move_custom(models.Model):
                             "name": invoice_line.name,
                             "quantity": invoice_line.quantity,
                             "price_unit": invoice_line.price_unit / rate_currency,
-                            # "analytic_account_id": invoice_line.analytic_account_id if invoice_line.analytic_account_id else None
                         })
                     self.env["account.move"].with_company(company).sudo().create({
                         "partner_id": invoice.partner_id,
-                        "move_type": 'out_invoice',
+                        "move_type": invoice.move_type,
                         "name": invoice.name,
                         "is_copy": True,
                         "invoice_date": invoice.invoice_date,
                         "invoice_line_ids": invoice_lines,
                         "journal_id": journal_id,
-                        # "Identificador": invoice.Identificador,
-                        # "Pay_mode": invoice.Pay_mode,
-                        # "type_fact": invoice.type_fact
                     }).action_post()
-                    # self.env["account.move"].with_company(company).sudo().create({
-                        # "partner_id": invoice.partner_id,
-                        # "move_type": 'in_invoice',
-                        # "name": invoice.name,
-                        # "is_copy": True,
-                        # "invoice_date": invoice.invoice_date,
-                        # "invoice_line_ids": invoice_lines,
-                        # "journal_id": journal_id,
-                        # # "Identificador": invoice.Identificador,
-                        # # "Pay_mode": invoice.Pay_mode,
-                        # # "type_fact": invoice.type_fact
-                    # }).action_post()
         res = super(account_move_custom, self).write(vals)
         return res
 
