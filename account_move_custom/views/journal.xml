@@ -9,7 +9,8 @@
         <xpath expr="//sheet" position="before">
           <header>
           <button name="action_create_duplicates" 
-          string="Create duplicates" type="object" class="btn btn-outline-info"/>
+          string="Copiar Diario" type="object" class="btn btn-outline-info"
+          attrs="{'invisible': [('id', '=', False)], }"/>
           </header>
         </xpath>
       </field>

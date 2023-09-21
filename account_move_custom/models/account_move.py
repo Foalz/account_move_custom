@@ -11,9 +11,9 @@ class account_move_custom(models.Model):
     is_copy = fields.Boolean(default=False, readonly=1)
 
     def write(self, vals):
-        currency = self.env.ref("base.USD")
         current_company = self.env.company
-        companies = self.env["res.company"].search([])
+        current_user = self.env.user
+        companies = self.env["res.users"].search([("id", "=", current_user.id)]).company_ids
         rest_of_companies = list(filter(lambda x: x != current_company, [c for c in companies])) 
         invoice_lines = []
 
@@ -32,7 +32,7 @@ class account_move_custom(models.Model):
                             "product_id": invoice_line.product_id,
                             "name": invoice_line.name,
                             "quantity": invoice_line.quantity,
-                            "price_unit": invoice_line.price_unit / rate_currency,
+                            "price_unit": invoice_line.price_unit / ( rate_currency if rate_currency else 1),
                         })
                     self.env["account.move"].with_company(company).sudo().create({
                         "partner_id": invoice.partner_id,
@@ -42,9 +42,25 @@ class account_move_custom(models.Model):
                         "invoice_date": invoice.invoice_date,
                         "invoice_line_ids": invoice_lines,
                         "journal_id": journal_id,
-                    }).action_post()
+                    })
         res = super(account_move_custom, self).write(vals)
         return res
+
+    def action_message(self):
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Creacion exitosa',
+                'message': '¡La factura ha sido duplicada en las demas empresas satisfactoriamente!',
+                'sticky': False,
+                'type': 'success',
+                'context': { 
+                }
+            },
+        }
+        return action
+
 
     def get_new_journal(self, journal_id):
         """
