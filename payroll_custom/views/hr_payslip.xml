@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <record id="payroll_hr_payslip_totals_view" model="ir.ui.view">
+      <field name="name">hr.payslip.form.inherit</field>
+      <field name="model">hr.payslip</field>
+      <field name="inherit_id" ref="payroll.hr_payslip_view_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='dynamic_filtered_payslip_lines']//field[@name='total']" position="replace">
+          <field name="total" decoration-success="0" readonly="1" invisible="1"/>
+        </xpath>
+        <xpath expr="//field[@name='dynamic_filtered_payslip_lines']//field[@name='rate']" position="replace">
+          <field name="rate" decoration-success="0" readonly="1" invisible="1"/>
+        </xpath>
+        <xpath expr="//field[@name='dynamic_filtered_payslip_lines']//field[@name='amount']" position="replace">
+          <field name="amount" decoration-success="0" readonly="1" invisible="1"/>
+        </xpath>
+        <xpath expr="//field[@name='dynamic_filtered_payslip_lines']//field[@name='total']" position="after">
+          <field name="additions" decoration-success="1 &gt; (additions > 0)" readonly="1"/>
+          <field name="substractions" decoration-danger="1 &gt; (substractions > 0)" readonly="1"/>
+        </xpath>
+        <xpath expr="//field[@name='dynamic_filtered_payslip_lines']" position="after">
+          <group class="oe_subtotal_footer oe_right" style="text-align: right">
+              <field name="total_additions" class="oe_subtotal_footer_separator" decoration-success="1" readonly="1"/>
+              <field name="total_substractions" class="oe_subtotal_footer_separator" decoration-danger="1" readonly="1"/>
+              <field name="total_sum" class="oe_subtotal_footer_separator" readonly="1"/>
+            </group>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>
